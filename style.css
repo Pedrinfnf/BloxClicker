@@ -1,0 +1,62 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  background: #f4e3d7;
+  color: #5a3a1a;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 3em;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #fff;
+  margin-bottom: 10px;
+}
+
+#game-container {
+  background: #fff8f0;
+  border: 3px solid #a65d30;
+  border-radius: 15px;
+  max-width: 350px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+#click-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+#click-btn img {
+  width: 180px;
+  transition: transform 0.1s ease;
+  user-select: none;
+}
+
+#click-btn:active img {
+  transform: scale(1.1);
+}
+
+#upgrades, #auto-clicker {
+  margin-top: 20px;
+  border-top: 2px solid #a65d30;
+  padding-top: 10px;
+}
+
+button {
+  background: #a65d30;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #78421b;
+}
