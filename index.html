@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BloxClicker.Com</title>
+<link rel="icon" href="https://popcat.click/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Blox Clicker</h1>
+  <div id="game-container">
+    <button id="click-btn" aria-label="Clique no gato Popcat">
+      <img id="popcat-img" src="https://popcat.click/popcat.png" alt="Popcat" />
+    </button>
+    <p>Moedas: <span id="coins">0</span></p>
+    
+    <div id="upgrades">
+      <h2>Upgrades</h2>
+      <button id="upgrade-btn">Upgrade (Custa <span id="upgrade-cost">10</span>)</button>
+      <p>Level: <span id="upgrade-level">0</span></p>
+    </div>
+
+    <div id="auto-clicker">
+      <h2>Auto Clicker</h2>
+      <button id="auto-btn">Comprar Auto Clicker (Custa <span id="auto-cost">50</span>)</button>
+      <p>Nível: <span id="auto-level">0</span></p>
+    </div>
+  </div>
+
+  <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+  <audio id="upgrade-sound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
