@@ -65,7 +65,7 @@ clickBtn.addEventListener('mouseup', () => {
 });
 
 clickBtn.addEventListener('mouseleave', () => {
-  popcatImg.src = "https://popcat.click/popcat.png"; // boca fechada se sair do botão
+  popcatImg.src = "https://popcat.click/popcat.png";
 });
 
 upgradeBtn.addEventListener('click', () => {
@@ -73,7 +73,7 @@ upgradeBtn.addEventListener('click', () => {
     coins -= upgradeCost;
     upgradeLevel++;
     coinsPerClick += 1;
-    upgradeCost = Math.floor(upgradeCost * 1.5); // multiplica custo a cada upgrade
+    upgradeCost = Math.floor(upgradeCost * 1.5);
     upgradeSound.play();
     updateDisplay();
     saveGame();
@@ -86,7 +86,7 @@ autoBtn.addEventListener('click', () => {
   if (coins >= autoCost) {
     coins -= autoCost;
     autoLevel++;
-    autoCost = Math.floor(autoCost * 1.7); // multiplica custo do auto clicker
+    autoCost = Math.floor(autoCost * 1.7);
     updateDisplay();
     saveGame();
   } else {
