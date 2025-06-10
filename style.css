@@ -31,7 +31,7 @@ h1 {
 }
 
 #click-btn img {
-  width: 180px;
+  width: 200px;
   transition: transform 0.1s ease;
   user-select: none;
 }
