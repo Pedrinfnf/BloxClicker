@@ -25,6 +25,7 @@ let score = 0;
 let level = 1;
 let wave = 1;
 let multiplier = 1;
+let gameLoopActive = false;
 
 // Player
 const player = {
@@ -153,7 +154,10 @@ function startGame() {
     gameOverDiv.classList.remove('active');
     pauseDiv.classList.remove('active');
     spawnWave();
-    gameLoop();
+    if (!gameLoopActive) {
+        gameLoopActive = true;
+        gameLoop();
+    }
 }
 
 function togglePause() {
@@ -163,7 +167,6 @@ function togglePause() {
     } else if (gameState === 'paused') {
         gameState = 'playing';
         pauseDiv.classList.remove('active');
-        gameLoop();
     }
 }
 
@@ -422,7 +425,7 @@ function updatePlayer() {
     player.x = Math.max(player.width/2, Math.min(baseWidth - player.width/2, player.x));
 }
 
-// Main Game Loop
+// Main Game Loop - CONTÍNUO
 function gameLoop() {
     ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
     ctx.fillRect(0, 0, baseWidth, baseHeight);
@@ -453,13 +456,17 @@ function gameLoop() {
         }
     }
     
-    if (gameState === 'playing' || gameState === 'paused') {
+    // LOOP CONTÍNUO
+    if (gameLoopActive) {
         requestAnimationFrame(gameLoop);
     }
 }
 
+// Iniciar o loop quando carregar a página
 window.addEventListener('load', () => {
     menuDiv.classList.add('active');
+    gameLoopActive = true;
+    gameLoop();
 });
 
 // Prevent zoom on double tap
