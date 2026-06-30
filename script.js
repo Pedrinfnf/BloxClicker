@@ -1,105 +1,417 @@
-const clickBtn = document.getElementById('click-btn');
-const coinsDisplay = document.getElementById('coins');
-const upgradeBtn = document.getElementById('upgrade-btn');
-const upgradeCostDisplay = document.getElementById('upgrade-cost');
-const upgradeLevelDisplay = document.getElementById('upgrade-level');
-const autoBtn = document.getElementById('auto-btn');
-const autoCostDisplay = document.getElementById('auto-cost');
-const autoLevelDisplay = document.getElementById('auto-level');
-const popcatImg = document.getElementById('popcat-img');
+// Game Variables
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-const clickSound = document.getElementById('click-sound');
-const upgradeSound = document.getElementById('upgrade-sound');
+canvas.width = 800;
+canvas.height = 600;
 
-let coins = 0;
-let coinsPerClick = 1;
-let upgradeLevel = 0;
-let upgradeCost = 10;
-let autoLevel = 0;
-let autoCost = 50;
+let gameState = 'menu'; // menu, playing, paused, gameOver
+let score = 0;
+let level = 1;
+let wave = 1;
+let multiplier = 1;
 
-function saveGame() {
-  const gameData = {
-    coins,
-    coinsPerClick,
-    upgradeLevel,
-    upgradeCost,
-    autoLevel,
-    autoCost
-  };
-  localStorage.setItem('bloxClickerSave', JSON.stringify(gameData));
+// Player
+const player = {
+    x: canvas.width / 2,
+    y: canvas.height - 50,
+    width: 30,
+    height: 40,
+    speed: 5,
+    health: 100,
+    maxHealth: 100,
+    bullets: [],
+    powerups: {
+        rapidFire: 0,
+        shield: 0,
+        multishot: 0
+    }
+};
+
+let keys = {};
+let enemies = [];
+let powerUps = [];
+let particles = [];
+let enemyBullets = [];
+
+// Mouse/Touch controls
+let mouseX = canvas.width / 2;
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+});
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+    
+    if (e.key === ' ') {
+        e.preventDefault();
+        if (gameState === 'playing') shoot();
+    }
+    
+    if (e.key.toLowerCase() === 'p') {
+        if (gameState === 'playing') togglePause();
+        else if (gameState === 'paused') togglePause();
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+// UI Elements
+const menuDiv = document.getElementById('menu');
+const hudDiv = document.getElementById('hud');
+const gameOverDiv = document.getElementById('gameOver');
+const pauseDiv = document.getElementById('pause');
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('restartBtn').addEventListener('click', restartGame);
+document.getElementById('menuBtn').addEventListener('click', goToMenu);
+document.getElementById('resumeBtn').addEventListener('click', togglePause);
+document.getElementById('pauseMenuBtn').addEventListener('click', goToMenu);
+
+function startGame() {
+    gameState = 'playing';
+    score = 0;
+    level = 1;
+    wave = 1;
+    multiplier = 1;
+    player.health = player.maxHealth;
+    player.x = canvas.width / 2;
+    enemies = [];
+    powerUps = [];
+    particles = [];
+    enemyBullets = [];
+    player.bullets = [];
+    menuDiv.classList.remove('active');
+    hudDiv.classList.remove('hidden');
+    gameOverDiv.classList.remove('active');
+    pauseDiv.classList.remove('active');
+    spawnWave();
+    gameLoop();
 }
 
-function loadGame() {
-  const saved = localStorage.getItem('bloxClickerSave');
-  if (saved) {
-    const data = JSON.parse(saved);
-    coins = data.coins || 0;
-    coinsPerClick = data.coinsPerClick || 1;
-    upgradeLevel = data.upgradeLevel || 0;
-    upgradeCost = data.upgradeCost || 10;
-    autoLevel = data.autoLevel || 0;
-    autoCost = data.autoCost || 50;
-  }
-  updateDisplay();
+function togglePause() {
+    if (gameState === 'playing') {
+        gameState = 'paused';
+        pauseDiv.classList.add('active');
+    } else if (gameState === 'paused') {
+        gameState = 'playing';
+        pauseDiv.classList.remove('active');
+        gameLoop();
+    }
 }
 
-function updateDisplay() {
-  coinsDisplay.textContent = coins;
-  upgradeCostDisplay.textContent = upgradeCost;
-  upgradeLevelDisplay.textContent = upgradeLevel;
-  autoCostDisplay.textContent = autoCost;
-  autoLevelDisplay.textContent = autoLevel;
+function goToMenu() {
+    gameState = 'menu';
+    menuDiv.classList.add('active');
+    hudDiv.classList.add('hidden');
+    gameOverDiv.classList.remove('active');
+    pauseDiv.classList.remove('active');
 }
 
-clickBtn.addEventListener('mousedown', () => {
-  coins += coinsPerClick;
-  coinsDisplay.textContent = coins;
-  clickSound.play();
-  popcatImg.src = "https://popcat.click/popcat-open.png"; // boca aberta
+function endGame() {
+    gameState = 'gameOver';
+    document.getElementById('finalScore').textContent = `Score Final: ${score}`;
+    document.getElementById('finalLevel').textContent = `Onda Alcançada: ${wave}`;
+    gameOverDiv.classList.add('active');
+    hudDiv.classList.add('hidden');
+}
+
+function restartGame() {
+    startGame();
+}
+
+// Draw Functions
+function drawPlayer() {
+    // Body
+    ctx.fillStyle = '#00ff88';
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo(player.x - player.width/2, player.y + player.height);
+    ctx.lineTo(player.x + player.width/2, player.y + player.height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Glow
+    ctx.strokeStyle = 'rgba(0, 255, 136, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Window
+    ctx.fillStyle = '#00ddff';
+    ctx.fillRect(player.x - 5, player.y + 10, 10, 10);
+}
+
+function drawBullets() {
+    ctx.fillStyle = '#00ff88';
+    player.bullets.forEach((bullet, index) => {
+        bullet.y -= bullet.speed;
+        
+        // Draw bullet
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Remove if off screen
+        if (bullet.y < 0) {
+            player.bullets.splice(index, 1);
+        }
+    });
+}
+
+function drawEnemies() {
+    enemies.forEach((enemy, index) => {
+        // Movement
+        enemy.y += enemy.speed;
+        enemy.x += Math.sin(enemy.x / 50) * 0.5;
+        
+        // Draw enemy
+        ctx.fillStyle = '#ff0055';
+        ctx.beginPath();
+        ctx.moveTo(enemy.x, enemy.y);
+        ctx.lineTo(enemy.x - enemy.width/2, enemy.y + enemy.height);
+        ctx.lineTo(enemy.x + enemy.width/2, enemy.y + enemy.height);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Glow
+        ctx.strokeStyle = 'rgba(255, 0, 85, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Shoot occasionally
+        if (Math.random() < 0.01) {
+            enemyBullets.push({
+                x: enemy.x,
+                y: enemy.y,
+                speed: 3,
+                radius: 2
+            });
+        }
+        
+        // Remove if off screen
+        if (enemy.y > canvas.height) {
+            enemies.splice(index, 1);
+            player.health -= 10;
+            if (player.health <= 0) endGame();
+        }
+    });
+}
+
+function drawEnemyBullets() {
+    ctx.fillStyle = '#ff3388';
+    enemyBullets.forEach((bullet, index) => {
+        bullet.y += bullet.speed;
+        
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (bullet.y > canvas.height) {
+            enemyBullets.splice(index, 1);
+        }
+    });
+}
+
+function drawPowerUps() {
+    powerUps.forEach((powerUp, index) => {
+        powerUp.y += 2;
+        
+        ctx.fillStyle = powerUp.type === 'health' ? '#00ff00' : '#ffaa00';
+        ctx.beginPath();
+        ctx.arc(powerUp.x, powerUp.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Glow
+        ctx.strokeStyle = powerUp.type === 'health' ? 'rgba(0, 255, 0, 0.5)' : 'rgba(255, 170, 0, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        if (powerUp.y > canvas.height) {
+            powerUps.splice(index, 1);
+        }
+    });
+}
+
+function drawParticles() {
+    particles.forEach((particle, index) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.life--;
+        
+        ctx.fillStyle = `rgba(${particle.color}, ${particle.life / particle.maxLife})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (particle.life <= 0) {
+            particles.splice(index, 1);
+        }
+    });
+}
+
+function createExplosion(x, y, color = '0, 255, 136') {
+    for (let i = 0; i < 10; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 30,
+            maxLife: 30,
+            size: Math.random() * 3 + 1,
+            color
+        });
+    }
+}
+
+// Collision Detection
+function checkCollisions() {
+    // Bullets vs Enemies
+    player.bullets.forEach((bullet, bulletIndex) => {
+        enemies.forEach((enemy, enemyIndex) => {
+            const dx = bullet.x - enemy.x;
+            const dy = bullet.y - enemy.y;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            if (distance < 20) {
+                player.bullets.splice(bulletIndex, 1);
+                enemies.splice(enemyIndex, 1);
+                score += Math.floor(10 * multiplier);
+                multiplier = Math.min(multiplier + 0.1, 5);
+                createExplosion(enemy.x, enemy.y, '255, 0, 85');
+                
+                // Random power-up drop
+                if (Math.random() < 0.1) {
+                    powerUps.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        type: Math.random() < 0.5 ? 'health' : 'damage'
+                    });
+                }
+            }
+        });
+    });
+    
+    // Enemy bullets vs Player
+    enemyBullets.forEach((bullet, index) => {
+        const dx = bullet.x - player.x;
+        const dy = bullet.y - player.y;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        
+        if (distance < 20) {
+            enemyBullets.splice(index, 1);
+            player.health -= 5;
+            createExplosion(player.x, player.y, '255, 100, 100');
+            if (player.health <= 0) endGame();
+        }
+    });
+    
+    // Power-ups vs Player
+    powerUps.forEach((powerUp, index) => {
+        const dx = powerUp.x - player.x;
+        const dy = powerUp.y - player.y;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        
+        if (distance < 25) {
+            if (powerUp.type === 'health') {
+                player.health = Math.min(player.health + 20, player.maxHealth);
+            } else {
+                multiplier = Math.min(multiplier + 0.5, 5);
+            }
+            powerUps.splice(index, 1);
+            createExplosion(powerUp.x, powerUp.y, powerUp.type === 'health' ? '0, 255, 0' : '255, 170, 0');
+        }
+    });
+}
+
+// Shooting
+function shoot() {
+    player.bullets.push({
+        x: player.x,
+        y: player.y,
+        speed: 7,
+        radius: 3
+    });
+}
+
+// Spawning
+function spawnWave() {
+    const enemyCount = 3 + wave * 2;
+    for (let i = 0; i < enemyCount; i++) {
+        enemies.push({
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: -50 - i * 60,
+            width: 20,
+            height: 30,
+            speed: 1 + wave * 0.2
+        });
+    }
+}
+
+// Update HUD
+function updateHUD() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = wave;
+    document.getElementById('ammo').textContent = '∞';
+    document.getElementById('multiplier').textContent = `x${multiplier.toFixed(1)}`;
+    document.getElementById('healthText').textContent = `HP: ${Math.max(0, player.health)}/100`;
+    
+    const healthPercent = Math.max(0, (player.health / player.maxHealth) * 100);
+    document.getElementById('healthFill').style.width = healthPercent + '%';
+}
+
+// Player Movement
+function updatePlayer() {
+    if (keys['a'] || keys['arrowleft']) player.x -= player.speed;
+    if (keys['d'] || keys['arrowright']) player.x += player.speed;
+    
+    // Boundary check
+    player.x = Math.max(player.width/2, Math.min(canvas.width - player.width/2, player.x));
+}
+
+// Main Game Loop
+function gameLoop() {
+    // Clear canvas
+    ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Stars background
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 5; i++) {
+        const x = (Date.now() * 0.01 + i * 160) % canvas.width;
+        ctx.beginPath();
+        ctx.arc(x, 50, 1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    if (gameState === 'playing') {
+        updatePlayer();
+        drawPlayer();
+        drawBullets();
+        drawEnemies();
+        drawEnemyBullets();
+        drawPowerUps();
+        drawParticles();
+        checkCollisions();
+        updateHUD();
+        
+        // Wave management
+        if (enemies.length === 0 && enemyBullets.length === 0) {
+            wave++;
+            multiplier = Math.max(1, multiplier - 0.3);
+            spawnWave();
+        }
+    }
+    
+    if (gameState === 'playing' || gameState === 'paused') {
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+// Start on load
+window.addEventListener('load', () => {
+    menuDiv.classList.add('active');
 });
-
-clickBtn.addEventListener('mouseup', () => {
-  popcatImg.src = "https://popcat.click/popcat.png"; // boca fechada
-  saveGame();
-});
-
-clickBtn.addEventListener('mouseleave', () => {
-  popcatImg.src = "https://popcat.click/popcat.png";
-});
-
-upgradeBtn.addEventListener('click', () => {
-  if (coins >= upgradeCost) {
-    coins -= upgradeCost;
-    upgradeLevel++;
-    coinsPerClick += 1;
-    upgradeCost = Math.floor(upgradeCost * 1.5);
-    upgradeSound.play();
-    updateDisplay();
-    saveGame();
-  } else {
-    alert('Você não tem moedas suficientes para o upgrade!');
-  }
-});
-
-autoBtn.addEventListener('click', () => {
-  if (coins >= autoCost) {
-    coins -= autoCost;
-    autoLevel++;
-    autoCost = Math.floor(autoCost * 1.7);
-    updateDisplay();
-    saveGame();
-  } else {
-    alert('Você não tem moedas suficientes para comprar Auto Clicker!');
-  }
-});
-
-setInterval(() => {
-  if (autoLevel > 0) {
-    coins += autoLevel;
-    updateDisplay();
-    saveGame();
-  }
-}, 1000);
-
-loadGame();
