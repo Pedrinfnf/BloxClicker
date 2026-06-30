@@ -2,9 +2,12 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Space Commander - O Jogo</title>
     <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#0a0e27">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
     <div id="game-container">
@@ -17,10 +20,11 @@
                 <p class="subtitle">Derrote as ondas inimigas e salve a galáxia!</p>
                 <button id="startBtn" class="btn">COMEÇAR JOGO</button>
                 <div class="instructions">
-                    <h3>🎮 Controles:</h3>
-                    <p>⬅️ A/D ou Setas - Mover</p>
-                    <p>🔫 Espaço - Atirar</p>
-                    <p>⏸️ P - Pausar</p>
+                    <h3>📱 Controles Mobile:</h3>
+                    <p>👆 Toque esquerdo - Mover esquerda</p>
+                    <p>👆 Toque direito - Mover direita</p>
+                    <p>👆 Toque centro - Atirar</p>
+                    <p>🎮 Ou use as setas do teclado</p>
                 </div>
             </div>
         </div>
@@ -38,12 +42,12 @@
                 <p id="healthText">HP: 100/100</p>
             </div>
             <div class="hud-right">
-                <div class="ammo">Munição: <span id="ammo">∞</span></div>
-                <div class="multiplier">Multiplicador: <span id="multiplier">x1</span></div>
+                <div class="multiplier">x<span id="multiplier">1.0</span></div>
+                <button id="pauseBtn" class="pause-btn">⏸️</button>
             </div>
         </div>
 
-        <!-- Tela de Game Over -->
+        <!-- Game Over -->
         <div id="gameOver" class="menu">
             <div class="menu-content">
                 <h1>💀 GAME OVER</h1>
@@ -54,13 +58,20 @@
             </div>
         </div>
 
-        <!-- Tela de Pausa -->
+        <!-- Pausa -->
         <div id="pause" class="menu">
             <div class="menu-content">
                 <h1>⏸️ PAUSADO</h1>
-                <button id="resumeBtn" class="btn">CONTINUAR (P)</button>
+                <button id="resumeBtn" class="btn">CONTINUAR</button>
                 <button id="pauseMenuBtn" class="btn secondary">MENU</button>
             </div>
+        </div>
+
+        <!-- Controles Mobile -->
+        <div id="mobile-controls" class="mobile-controls hidden">
+            <div class="control-left" id="controlLeft"></div>
+            <div class="control-center" id="controlCenter"></div>
+            <div class="control-right" id="controlRight"></div>
         </div>
     </div>
 
