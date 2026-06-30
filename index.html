@@ -1,37 +1,69 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Popcat</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Commander - O Jogo</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Blox Clicker</h1>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Menu Inicial -->
+        <div id="menu" class="menu active">
+            <div class="menu-content">
+                <h1>🚀 SPACE COMMANDER</h1>
+                <p class="subtitle">Derrote as ondas inimigas e salve a galáxia!</p>
+                <button id="startBtn" class="btn">COMEÇAR JOGO</button>
+                <div class="instructions">
+                    <h3>🎮 Controles:</h3>
+                    <p>⬅️ A/D ou Setas - Mover</p>
+                    <p>🔫 Espaço - Atirar</p>
+                    <p>⏸️ P - Pausar</p>
+                </div>
+            </div>
+        </div>
 
-  <div id="game-container">
-    <button id="click-btn" aria-label="Clique no Popcat">
-      <img id="popcat-img" src="https://popcat.click/popcat.png" alt="Popcat fechado" />
-    </button>
-    
-    <p>Moedas: <span id="coins">0</span></p>
+        <!-- HUD do Jogo -->
+        <div id="hud" class="hud hidden">
+            <div class="hud-left">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="level">Onda: <span id="level">1</span></div>
+            </div>
+            <div class="hud-center">
+                <div class="health-bar">
+                    <div id="healthFill" class="health-fill"></div>
+                </div>
+                <p id="healthText">HP: 100/100</p>
+            </div>
+            <div class="hud-right">
+                <div class="ammo">Munição: <span id="ammo">∞</span></div>
+                <div class="multiplier">Multiplicador: <span id="multiplier">x1</span></div>
+            </div>
+        </div>
 
-    <div id="upgrades">
-      <h2>Upgrades</h2>
-      <button id="upgrade-btn">Upgrade (Custa <span id="upgrade-cost">10</span>)</button>
-      <p>Level: <span id="upgrade-level">0</span></p>
+        <!-- Tela de Game Over -->
+        <div id="gameOver" class="menu">
+            <div class="menu-content">
+                <h1>💀 GAME OVER</h1>
+                <p class="subtitle" id="finalScore">Score Final: 0</p>
+                <p class="subtitle" id="finalLevel">Onda Alcançada: 1</p>
+                <button id="restartBtn" class="btn">TENTAR NOVAMENTE</button>
+                <button id="menuBtn" class="btn secondary">MENU</button>
+            </div>
+        </div>
+
+        <!-- Tela de Pausa -->
+        <div id="pause" class="menu">
+            <div class="menu-content">
+                <h1>⏸️ PAUSADO</h1>
+                <button id="resumeBtn" class="btn">CONTINUAR (P)</button>
+                <button id="pauseMenuBtn" class="btn secondary">MENU</button>
+            </div>
+        </div>
     </div>
 
-    <div id="auto-clicker">
-      <h2>Auto Clicker</h2>
-      <button id="auto-btn">Comprar Auto Clicker (Custa <span id="auto-cost">50</span>)</button>
-      <p>Nível: <span id="auto-level">0</span></p>
-    </div>
-  </div>
-
-  <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
-  <audio id="upgrade-sound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
